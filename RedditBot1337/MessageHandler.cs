@@ -11,55 +11,64 @@ namespace RedditBot1337
 {
     class MessageHandler
     {
+        
         private TokenBucket _tb;
+        private HttpClient _client;
+        public MessageHandler(HttpClient client, TokenBucket tb)
+        {
+            _client = client;
+            _tb = tb;
+        }
 
-        public async Task<HttpResponseMessage> GetRequestAsync(HttpClient client, string method)
+        public async Task<HttpResponseMessage> GetRequestAsync(string method)
         {
             Console.WriteLine(method);
-            Console.WriteLine(client);
+            Console.WriteLine(_client);
             if (_tb.RequestIsAllowed(1))
             {
-                return await client.GetAsync(method);
+                return await _client.GetAsync(method);
             }
             else
             {
                 System.Threading.Thread.Sleep(60000);
-                return await GetRequestAsync(client, method);
+                return await GetRequestAsync(method);
             }
         }
 
-        public async Task<HttpResponseMessage> PostRequestAsync(HttpClient client, string method, FormUrlEncodedContent data)
+        public async Task<HttpResponseMessage> PostRequestAsync(string method, FormUrlEncodedContent data)
         {
             Console.WriteLine(method);
-            Console.WriteLine(client);
+            Console.WriteLine(_client);
             if (_tb.RequestIsAllowed(1))
             {
-                return await client.PostAsync(method, data);
+                return await _client.PostAsync(method, data);
             }
             else
             {
                 System.Threading.Thread.Sleep(60000);
-                return await PostRequestAsync(client, method, data);
+                return await PostRequestAsync(method, data);
             }
         }
 
-        public async Task<HttpResponseMessage> PostRequestAsync(HttpClient client, string method)
+        public async Task<HttpResponseMessage> PostRequestAsync(string method)
         {
             Console.WriteLine(method);
-            Console.WriteLine(client);
+            Console.WriteLine(_client);
             if (_tb.RequestIsAllowed(1))
             {
                 var formdata = new Dictionary<string, string> { };
                 var encodedformdata = new FormUrlEncodedContent(formdata);
 
-                return await client.PostAsync(method, encodedformdata);
+                return await _client.PostAsync(method, encodedformdata);
             }
             else
             {
                 System.Threading.Thread.Sleep(60000);
-                return await PostRequestAsync(client, method);
+                return await PostRequestAsync(method);
             }
         }
+
+        
 
         private void TokenUsage(HttpClient client, HttpResponseMessage response)
         {
@@ -74,9 +83,9 @@ namespace RedditBot1337
             Console.WriteLine(responseData);
         }
 
-        public void Run(HttpClient client)
+        public void Run()
         {
-            var response = GetRequestAsync(client, "https://oauth.reddit.com/message/unread.json").GetAwaiter().GetResult();
+            var response = GetRequestAsync("https://oauth.reddit.com/message/unread.json").GetAwaiter().GetResult();
             var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             Console.WriteLine(responseData);
 
@@ -99,14 +108,16 @@ namespace RedditBot1337
                 var encodedFormData = new FormUrlEncodedContent(formData);
 
                 var authurl = "https://oauth.reddit.com/api/comment.json";
-                var sendComment = PostRequestAsync(client, authurl, encodedFormData).GetAwaiter().GetResult();
+                var sendComment = PostRequestAsync(authurl, encodedFormData).GetAwaiter().GetResult();
                 Console.WriteLine(sendComment);
 
             }
 
             var deleteMessages = "https://oauth.reddit.com/api/read_all_messages.json";
-            var deleteMessagesData = PostRequestAsync(client, deleteMessages).GetAwaiter().GetResult();
-
+            var deleteMessagesData = PostRequestAsync(deleteMessages).GetAwaiter().GetResult();
+            Console.WriteLine("bacon");
+            Console.ReadKey();
         }
+        
     }
 }

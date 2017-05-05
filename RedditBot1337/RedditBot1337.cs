@@ -18,6 +18,29 @@ namespace RedditBot1337
         private string _redditpassword;
         private string _clientversion;
         private TokenBucket _tb;
+        private MessageHandler _handler;
+        // private MessageHandler _messageHandler;
+
+        //constructor
+        public RedditBot(string clientid, string clientsecret, string redditusername, string redditpassword, string clientversion)
+        {
+            _clientid = clientid;
+            _clientsecret = clientsecret;
+            _redditusername = redditusername;
+            _redditpassword = redditpassword;
+            _clientversion = clientversion;
+
+            _tb = new TokenBucket(60, 60);
+
+            using (var client = new HttpClient())
+            {
+                SetBasicAuthenticationHeader(client);
+                SetCustomUserAgent(client);
+                Authenticate(client);
+            }
+            //_handler = new MessageHandler(client, _tb);
+            //_handler.Run();
+        }
 
         public async Task<HttpResponseMessage> GetRequestAsync(HttpClient client, string method)
         {
@@ -67,29 +90,6 @@ namespace RedditBot1337
             }
         }
 
-        //constructor
-        public RedditBot(string clientid, string clientsecret, string redditusername, string redditpassword, string clientversion)
-        {
-            _clientid = clientid;
-            _clientsecret = clientsecret;
-            _redditusername = redditusername;
-            _redditpassword = redditpassword;
-            _clientversion = clientversion;
-
-            _tb = new TokenBucket(60, 60);
-
-            using (var client = new HttpClient())
-            {
-                SetBasicAuthenticationHeader(client);
-                SetCustomUserAgent(client);
-                CreateFormData(client);
-                var response = CreateFormData(client);
-                TokenUsage(client, response);
-                Run(client);
-            }
-
-        }
-
         private void SetBasicAuthenticationHeader(HttpClient client)
         {
             var AuthenticationArray = Encoding.ASCII.GetBytes($"{_clientid}:{ _clientsecret}");
@@ -102,7 +102,7 @@ namespace RedditBot1337
             client.DefaultRequestHeaders.Add("user-agent", $"changemeclient / v{_clientversion} by { _redditusername}");
         }
 
-        private HttpResponseMessage CreateFormData(HttpClient client)
+        private void Authenticate(HttpClient client)
         {
             var formData = new Dictionary<string, string>
 
@@ -116,14 +116,19 @@ namespace RedditBot1337
 
             var authurl = "https://www.reddit.com/api/v1/access_token";
             var response = client.PostAsync(authurl, encodedFormData).GetAwaiter().GetResult();
+            Console.WriteLine(response);
 
-            Console.WriteLine(response.StatusCode);
-            // actual token
-            
-            return response;
+            var accessToken = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            response = client.GetAsync("https://oauth.reddit.com/api/v1/me").GetAwaiter().GetResult();
+            var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            Console.WriteLine(responseData);
+            Console.ReadKey();
         }
 
-        MessageHandler
+        //Creating object to the class
+        //MessageHandler _messageHandler = new MessageHandler();
+        
 
         //private void TokenUsage(HttpClient client, HttpResponseMessage response)
         //{
