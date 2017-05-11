@@ -114,8 +114,7 @@ namespace RedditBot1337
             }
 
             var deleteMessages = "https://oauth.reddit.com/api/read_all_messages.json";
-            var deleteMessagesData = PostRequestAsync(deleteMessages).GetAwaiter().GetResult();
-            Console.WriteLine("bacon");
+            PostRequestAsync(deleteMessages).GetAwaiter().GetResult();
             Console.ReadKey();
         }
         

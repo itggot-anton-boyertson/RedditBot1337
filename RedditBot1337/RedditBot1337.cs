@@ -19,6 +19,7 @@ namespace RedditBot1337
         private string _clientversion;
         private TokenBucket _tb;
         private MessageHandler _handler;
+        private HttpClient _client;
         // private MessageHandler _messageHandler;
 
         //constructor
@@ -32,77 +33,28 @@ namespace RedditBot1337
 
             _tb = new TokenBucket(60, 60);
 
-            using (var client = new HttpClient())
-            {
-                SetBasicAuthenticationHeader(client);
-                SetCustomUserAgent(client);
-                Authenticate(client);
-            }
-            //_handler = new MessageHandler(client, _tb);
-            //_handler.Run();
+            _client = new HttpClient();
+            SetBasicAuthenticationHeader();
+            SetCustomUserAgent();
+            Authenticate();
+
+            _handler = new MessageHandler(_client, _tb);
+            _handler.Run();
         }
 
-        public async Task<HttpResponseMessage> GetRequestAsync(HttpClient client, string method)
-        {
-            Console.WriteLine(method);
-            Console.WriteLine(client);
-            if (_tb.RequestIsAllowed(1) )
-            {
-                return await client.GetAsync(method);
-            }
-            else
-            {
-                System.Threading.Thread.Sleep(60000);
-                return await GetRequestAsync(client, method);
-            }
-        }
-
-        public async Task<HttpResponseMessage> PostRequestAsync(HttpClient client, string method, FormUrlEncodedContent data)
-        {
-            Console.WriteLine(method);
-            Console.WriteLine(client);
-            if (_tb.RequestIsAllowed(1))
-            {
-                return await client.PostAsync(method, data);
-            }
-            else
-            {
-                System.Threading.Thread.Sleep(60000);
-                return await PostRequestAsync(client, method, data);
-            }
-        }
-
-        public async Task<HttpResponseMessage> PostRequestAsync(HttpClient client, string method)
-        {
-            Console.WriteLine(method);
-            Console.WriteLine(client);
-            if (_tb.RequestIsAllowed(1))
-            {
-                var formdata = new Dictionary<string, string>{ };
-                var encodedformdata = new FormUrlEncodedContent(formdata);
-
-                return await client.PostAsync(method, encodedformdata);
-            }
-            else
-            {
-                System.Threading.Thread.Sleep(60000);
-                return await PostRequestAsync(client, method);
-            }
-        }
-
-        private void SetBasicAuthenticationHeader(HttpClient client)
+        private void SetBasicAuthenticationHeader()
         {
             var AuthenticationArray = Encoding.ASCII.GetBytes($"{_clientid}:{ _clientsecret}");
             var EncodedAuthenticationString = Convert.ToBase64String(AuthenticationArray);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("basic", EncodedAuthenticationString);
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("basic", EncodedAuthenticationString);
         }
 
-        private void SetCustomUserAgent(HttpClient client)
+        private void SetCustomUserAgent()
         {
-            client.DefaultRequestHeaders.Add("user-agent", $"changemeclient / v{_clientversion} by { _redditusername}");
+            _client.DefaultRequestHeaders.Add("user-agent", $"changemeclient / v{_clientversion} by { _redditusername}");
         }
 
-        private void Authenticate(HttpClient client)
+        private void Authenticate()
         {
             var formData = new Dictionary<string, string>
 
@@ -114,20 +66,29 @@ namespace RedditBot1337
 
             var encodedFormData = new FormUrlEncodedContent(formData);
 
+
+
             var authurl = "https://www.reddit.com/api/v1/access_token";
-            var response = client.PostAsync(authurl, encodedFormData).GetAwaiter().GetResult();
-            Console.WriteLine(response);
 
-            var accessToken = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            if (_tb.RequestIsAllowed(1))
+            {
+                var response = _client.PostAsync(authurl, encodedFormData).GetAwaiter().GetResult();
+                Console.WriteLine(response);
+                var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-            response = client.GetAsync("https://oauth.reddit.com/api/v1/me").GetAwaiter().GetResult();
-            var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            Console.WriteLine(responseData);
-            Console.ReadKey();
+                var accessToken = JObject.Parse(responseData).SelectToken("access_token").ToString();
+
+                _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", accessToken);
+
+            }
+            else
+            {
+                System.Environment.Exit(-1);
+            }
+            
+
         }
 
-        //Creating object to the class
-        //MessageHandler _messageHandler = new MessageHandler();
         
 
         //private void TokenUsage(HttpClient client, HttpResponseMessage response)
