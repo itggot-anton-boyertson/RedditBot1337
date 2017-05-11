@@ -20,7 +20,6 @@ namespace RedditBot1337
         private TokenBucket _tb;
         private MessageHandler _handler;
         private HttpClient _client;
-        // private MessageHandler _messageHandler;
 
         //constructor
         public RedditBot(string clientid, string clientsecret, string redditusername, string redditpassword, string clientversion)
@@ -39,7 +38,12 @@ namespace RedditBot1337
             Authenticate();
 
             _handler = new MessageHandler(_client, _tb);
+            //loop
+            while (true)
+            {
             _handler.Run();
+            }
+            
         }
 
         private void SetBasicAuthenticationHeader()
@@ -66,8 +70,6 @@ namespace RedditBot1337
 
             var encodedFormData = new FormUrlEncodedContent(formData);
 
-
-
             var authurl = "https://www.reddit.com/api/v1/access_token";
 
             if (_tb.RequestIsAllowed(1))
@@ -86,58 +88,6 @@ namespace RedditBot1337
                 System.Environment.Exit(-1);
             }
             
-
         }
-
-        
-
-        //private void TokenUsage(HttpClient client, HttpResponseMessage response)
-        //{
-        //    var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
-        //    var accessToken = JObject.Parse(responseData).SelectToken("access_token").ToString();
-
-        //    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", accessToken);
-
-        //    client.GetAsync("https://oauth.reddit.com/api/v1/me").GetAwaiter().GetResult();
-        //    responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        //    Console.WriteLine(responseData);
-        //}
-
-        //public void Run(HttpClient client)
-        //{
-        //    var response = GetRequestAsync(client, "https://oauth.reddit.com/message/unread.json").GetAwaiter().GetResult();
-        //    var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-        //    Console.WriteLine(responseData);
-
-
-        //    var obj = JObject.Parse(responseData);
-
-        //    foreach (var commentData in obj["data"]["children"])
-        //    {
-        //        var commentName = commentData["data"]["name"].Value<string>();
-        //        Console.WriteLine(commentName);
-
-        //        var formData = new Dictionary<string, string>
-
-        //        {
-        //            { "grant_type", "json" },
-        //            { "text", "bacon" },
-        //            { "thing_id", commentName }
-        //        };
-
-        //        var encodedFormData = new FormUrlEncodedContent(formData);
-
-        //        var authurl = "https://oauth.reddit.com/api/comment.json";
-        //        var sendComment = PostRequestAsync(client, authurl, encodedFormData).GetAwaiter().GetResult();
-        //        Console.WriteLine(sendComment);
-
-        //    }
-
-        //    var deleteMessages = "https://oauth.reddit.com/api/read_all_messages.json";
-        //    var deleteMessagesData = PostRequestAsync(client, deleteMessages).GetAwaiter().GetResult();
-
-        //}
-
     }
 }

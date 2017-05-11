@@ -83,6 +83,7 @@ namespace RedditBot1337
             Console.WriteLine(responseData);
         }
 
+        // loop
         public void Run()
         {
             var response = GetRequestAsync("https://oauth.reddit.com/message/unread.json").GetAwaiter().GetResult();
@@ -115,7 +116,6 @@ namespace RedditBot1337
 
             var deleteMessages = "https://oauth.reddit.com/api/read_all_messages.json";
             PostRequestAsync(deleteMessages).GetAwaiter().GetResult();
-            Console.ReadKey();
         }
         
     }
