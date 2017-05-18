@@ -39,9 +39,23 @@ namespace RedditBot1337
 
             _handler = new MessageHandler(_client, _tb);
             //loop
+
+            //kör bara varje 10 sekund, så om det går  fortare än 10 sekunder ska den sova
+            //annars så ska den köra direkt
             while (true)
             {
-            _handler.Run();
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                _handler.Run();
+                watch.Stop();
+                var elapsedMs = watch.ElapsedMilliseconds;
+                var timeToSleep = 10000 - elapsedMs;
+
+                if (timeToSleep > 0)
+                {
+                    System.Threading.Thread.Sleep( (int) timeToSleep);
+                    Console.WriteLine("Snark");
+                }
+
             }
             
         }

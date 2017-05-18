@@ -83,9 +83,10 @@ namespace RedditBot1337
             Console.WriteLine(responseData);
         }
 
-        // loop
         public void Run()
         {
+            //kör bara varje 10 sekund, så om det går  fortare än 10 sekunder ska den sova
+            //annars så ska den köra direkt
             var response = GetRequestAsync("https://oauth.reddit.com/message/unread.json").GetAwaiter().GetResult();
             var responseData = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             Console.WriteLine(responseData);
