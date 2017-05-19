@@ -9,6 +9,10 @@ using Newtonsoft.Json.Linq;
 
 namespace RedditBot1337
 {
+
+    /// <summary>
+    /// Run bot
+    /// </summary>
     class RedditBot
     {
 
@@ -21,7 +25,14 @@ namespace RedditBot1337
         private MessageHandler _handler;
         private HttpClient _client;
 
-        //constructor
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="clientid"> Bot id, as seen on "https://www.reddit.com/prefs/apps/" </param>
+        /// <param name="clientsecret"> Bot id, as seen on "https://www.reddit.com/prefs/apps/" </param>
+        /// <param name="redditusername"> Reddit username for login and authentication </param>
+        /// <param name="redditpassword"> Reddit password for login and authentication </param>
+        /// <param name="clientversion"> Client Version, personal to create an unique identity </param>
         public RedditBot(string clientid, string clientsecret, string redditusername, string redditpassword, string clientversion)
         {
             _clientid = clientid;
@@ -38,10 +49,11 @@ namespace RedditBot1337
             Authenticate();
 
             _handler = new MessageHandler(_client, _tb);
-            //loop
 
-            //kör bara varje 10 sekund, så om det går  fortare än 10 sekunder ska den sova
-            //annars så ska den köra direkt
+            /// Infinite loop
+            /// check if _handler.Run takes more than if 10 seconds to execute. 
+            /// If so, sleep for 10000 millisecond (10 seconds) minus time of execution
+            /// If not, run again
             while (true)
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -52,14 +64,16 @@ namespace RedditBot1337
 
                 if (timeToSleep > 0)
                 {
-                    System.Threading.Thread.Sleep( (int) timeToSleep);
-                    Console.WriteLine("Snark");
+                    System.Threading.Thread.Sleep((int)timeToSleep);
                 }
 
             }
-            
+
         }
 
+        /// <summary>
+        /// Configuring the client
+        /// </summary>
         private void SetBasicAuthenticationHeader()
         {
             var AuthenticationArray = Encoding.ASCII.GetBytes($"{_clientid}:{ _clientsecret}");
@@ -67,11 +81,24 @@ namespace RedditBot1337
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("basic", EncodedAuthenticationString);
         }
 
+        /// <summary>
+        /// Creating unique User Agent
+        /// </summary>
         private void SetCustomUserAgent()
         {
             _client.DefaultRequestHeaders.Add("user-agent", $"changemeclient / v{_clientversion} by { _redditusername}");
         }
 
+        /// <summary>
+        /// Use reddit username and password to login to reddit
+        /// (Also check if there is token, else exit)
+        /// </summary>
+        /// <example>
+        /// 
+        /// var redditBot = new RedditBot(clientId, clientSecret, redditUsername, redditPassword, clientVersion);
+        /// redditBot.Authenticate
+        /// 
+        /// </example>
         private void Authenticate()
         {
             var formData = new Dictionary<string, string>
@@ -101,7 +128,7 @@ namespace RedditBot1337
             {
                 System.Environment.Exit(-1);
             }
-            
+
         }
     }
 }

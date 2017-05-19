@@ -21,8 +21,6 @@ namespace RedditBot1337
             var clientVersion = ConfigurationManager.AppSettings["clientVersion"];
 
             var minBot = new RedditBot(clientId, clientSecret, redditUsername, redditPassword, clientVersion);
-            
-
         }
     }
 }
